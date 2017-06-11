@@ -117,13 +117,7 @@ class Add_vendor:
 			return misc.generate_error("'advertiser' field expected")
 
 		else:
-			r = requests.get(C.urls['vendor'].format(data.advertiser,C.secrets['admin_token']))
-			try:
-				resp = r.json()
-				db_funcs.batch_query_db(resp['products'])
-			except:
-				resp = misc.generate_error('Invalid Advertiser, {0}'.format(
-					data.advertiser))
+			resp = db_funcs.add_vendor(data)
 			return resp
 
 
