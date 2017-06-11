@@ -120,6 +120,7 @@ class Add_vendor:
 			r = requests.get(C.urls['vendor'].format(data.advertiser,C.secrets['admin_token']))
 			try:
 				resp = r.json()
+				db_funcs.batch_query_db(resp['products'])
 			except:
 				resp = misc.generate_error('Invalid Advertiser, {0}'.format(
 					data.advertiser))
