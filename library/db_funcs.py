@@ -17,12 +17,6 @@ C = configs.Configs()
 json_dump_path = 'json_data/{0}'
 no_key_response = '<Code>NoSuchKey</Code>'
 
-list_of_items = ['products.item.product_id','products.item.product_name','products.item.product_url',
-				 'products.item.advertiser','products.item.designer','products.item.image_url',
-				 'products.item.price','products.item.commission']
-
-alternate_list = ['products', ' ', None]
-
 def query_db(query):
 	"""
 	About:
@@ -139,7 +133,7 @@ def write_to_db(file_name):
 				logging.error('Something went wrong with record {0}'.format(i))
 				logging.error('Reason:{0}'.format(e))
 				values += ";"
-				# print "run_querry with values ",values
+				print "run_querry with values ",values
 				values = ""
 				continue
 
@@ -152,6 +146,7 @@ def write_to_db(file_name):
 				values += ","
 
 		if len(values) > 0:
+			values = values[:-1]
 			values += ";"
 			print "run_querry with values ",values
 		print failed
@@ -161,7 +156,7 @@ def write_to_db(file_name):
 # 				 'products.item.advertiser','products.item.designer','products.item.image_url',
 # 				 'products.item.price','products.item.commission']
 
-
+@misc.time_taken
 def add_vendor(data):
 	"""
 	About:
