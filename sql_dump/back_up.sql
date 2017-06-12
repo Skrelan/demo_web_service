@@ -17,7 +17,10 @@ Select * from advertiser
 
 Select count(*) from products
 
-Select * from products where designer = 'Sperry'
+Select * from products where product_name = 'Sperry'
+
+Select * from products where product_name Like '%Shoe%' OFFSET 100 LIMIT 100 
+
 
 drop table advertiser;
 
