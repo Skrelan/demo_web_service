@@ -16,6 +16,15 @@ C = configs.Configs()
 
 json_dump_path = 'json_data/{0}'
 no_key_response = '<Code>NoSuchKey</Code>'
+got_blocked = '<Error><Code>'
+dict_of_vendors = {}
+
+db = web.database(dbn='postgres', 
+				  db='postgres', 
+				  user='postgres', 
+				  pw=C.secrets["postgres"])
+
+
 
 def query_db(query):
 	"""
@@ -26,16 +35,16 @@ def query_db(query):
 		Returns: list or False
 	"""
 	try:
-		db = web.database(dbn='postgres', 
-						  db='postgres', 
-						  user='postgres', 
-						  pw=C.secrets["postgres"])
-
 		results = db.query(query)
 		return results
 
 	except Exception as e:
-		logging.error("database connection failed\n{0}\nAborting".format(e))
+		if 'FATAL:  sorry, too many clients already\n' in e:
+			time.sleep(3)
+			print "I AM WORKING"
+			return query_db(query)
+
+		logging.error("database connection failed\n{0}\nAborting {1}".format(e,query))
 		return False
 
 
@@ -70,18 +79,20 @@ def write_response_to_file(file_name,url):
 				i = 0
 				for chunk in r.iter_content(chunk_size=128):
 					
-					if i == 0 and no_key_response in chunk:
-						logging.error(misc.generate_error(
-							'Invalid Advertiser'))
-						break
-
+					if i == 0:
+						if no_key_response in chunk:
+							logging.error(misc.generate_error(
+								'Invalid Advertiser'))
+							break
+						if got_blocked in chunk:
+							logging.error(misc.generate_error(
+								'Got blocked/invalid access'))
+							break
 					i +=1
 					fd.write(chunk)
-
 			if i == 0:
-				os.remove(json_dump_path.format(file_name))
-				return False 
-			
+				os.remove(file_name)
+				return False
 			return True
 
 		except Exception as e:
@@ -92,16 +103,19 @@ def write_response_to_file(file_name,url):
 		logging.error('Exception caught: {}'.format(e))
 		return False
 
+
+def insert_into_products(values):
+	query = C.query['add_products'].format(values)
+	try:
+		r = query_db(query)
+		logging.info('Query: {0} ran successfully'.format(query))
+	except Exception as e:
+		logging.error('Something went wrong with the query{0}'.format(query))
+		logging.error('Error:{0}'.format(e))
+
+
 @misc.time_taken
-def write_to_db(file_name):
-	# parser = ijson.parse(open('json_data/Beachbody_products.json'))
-	# res = ''
-	# curr = {}
-	# for prefix, event, value in parser:
-	# 	if (prefix not in alternate_list) and (event == 'string'):
-	# 		key = curr[value]
-	# 		parser.next
-	# 		curr[key] = value
+def write_to_db(file_name,advertiser_id):
 	values = ""
 	batch_size = C.database_batch_size
 	failed = []
@@ -117,30 +131,36 @@ def write_to_db(file_name):
 				curr.update(json.loads(line[0:len(line)-2]))
 			
 			try:
-				curr_values = "('{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}')".format(
+				curr_values = "('{0}','{1}','{2}',{3},'{4}','{5}',{6},{7})".format(
 					curr['product_id'],
-					curr['product_name'],
+					curr['product_name'].encode('utf-8').replace("'","''"),
 					curr['product_url'],
-					curr['advertiser'],
-					curr['designer'],
+					advertiser_id,
+					curr['designer'].encode('utf-8').replace("'","''"),
 					curr['image_url'],
-					curr['price'],
-					curr['commission'])
+					float(curr['price']),
+					float(curr['commission']))
 				values += curr_values
 			
 			except Exception as e:
-				failed.append((i,curr['product_id']))
+				failed.append((i,curr))
 				logging.error('Something went wrong with record {0}'.format(i))
 				logging.error('Reason:{0}'.format(e))
-				values += ";"
-				print "run_querry with values ",values
+				print curr
+				print values
+				if len(values) > 0:
+					values = values[:-1]
+					values += ";"
+					insert_into_products(values)
 				values = ""
 				continue
 
 			curr_values = ""
 			if i%batch_size == 0:
+				if values[-1] == ',':
+					values = values[:-1]
 				values += ";"
-				print "run_querry with values ",values
+				insert_into_products(values)
 				values = ""
 			else:
 				values += ","
@@ -148,13 +168,32 @@ def write_to_db(file_name):
 		if len(values) > 0:
 			values = values[:-1]
 			values += ";"
-			print "run_querry with values ",values
-		print failed
+			# print "run_querry with values ",values
+			insert_into_products(values)
+
+		# records that failled to be converted into string 
+		
+		# print failed
 		print len(failed)
-			
-# list_of_items = ['products.item.product_id','products.item.product_name','products.item.product_url',
-# 				 'products.item.advertiser','products.item.designer','products.item.image_url',
-# 				 'products.item.price','products.item.commission']
+
+
+def insert_vendor(name):
+	r = query_db(C.query['add_vendor'].format(name))
+
+def get_vendor_id(name):
+	r = query_db(C.query['get_vendor_id'].format(name))
+	if r:
+		for data in r:
+			dict_of_vendors[name] = data.id
+
+@misc.time_taken
+def get_vendors():
+	r = query_db(C.query['get_vendors'])
+	if r :
+		for data in r:
+			dict_of_vendors[data.advertiser_name] = data.id
+		print dict_of_vendors
+
 
 @misc.time_taken
 def add_vendor(data):
@@ -165,14 +204,22 @@ def add_vendor(data):
 		Args: data (object of web.utils.Storage)
 		Returns: Bool
 	"""
+	get_vendors()
+
+	if data.advertiser in dict_of_vendors:
+		resp = misc.generate_error("Advertiser already encountered")
+		return resp
+
 	url = C.urls['vendor'].format(data.advertiser,C.secrets['admin_token'])
 	file_name = json_dump_path.format(data.advertiser+'_products.json')
 	
 	file_created = write_response_to_file(file_name,url)
 
 	if file_created:
+		insert_vendor(data.advertiser)
+		get_vendor_id(data.advertiser)
 		resp = misc.generate_success("File added")
-		write_to_db(file_name)
+		write_to_db(file_name,dict_of_vendors[data.advertiser])
 	else:
 		resp = misc.generate_error("Invalid Advertiser")
 

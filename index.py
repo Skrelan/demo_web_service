@@ -58,6 +58,7 @@ class Test:
 		if the app is running.
 	"""
 	def GET(self,name=''):
+		db_funcs.write_to_db("json_data/Nordstrom Rack_products.json",18)
 		return json.dumps({'message':'yes, I work','version':'1.0'})
 
 	def POST(self):
