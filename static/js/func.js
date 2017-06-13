@@ -9,13 +9,11 @@ function log_response(){
 
 function update_holders(input){
 	for(var i = 0; i<input.length;i++){
-		console.log(input[i]);
 		var image =  document.getElementById('img_'+String(i));
 		var data = document.getElementById('stats_'+String(i));
 		var button = document.getElementById('button_'+String(i));
 		image.setAttribute("src",input[i].image_url);
-		image.style.width = 150;
-		image.style.height = 150;
+		data.innerHTML = "$"+input[i].price+" | $"+input[i].commission;
 	}
 }
 
