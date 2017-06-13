@@ -247,7 +247,7 @@ def search_product(data):
 	if data.min_price:
 		try:
 			m = abs(float(data.min_price))
-			where_clause.append("P.price =< {0}".format(m))
+			where_clause.append("P.price <= {0}".format(m))
 		except Exception as e:
 			search_error('min_price',e)
 
@@ -265,6 +265,8 @@ def search_product(data):
 			extra.append("LIMIT {0}".format(m))
 		except Exception as e:
 			search_error('limit',e)
+	else:
+		extra.append("LIMIT 100")
 
 	if data.offset:
 		try:
@@ -273,6 +275,17 @@ def search_product(data):
 			extra.append("OFFSET {0}".format(m))
 		except Exception as e:
 			search_error('offset',e)
+
+	if len(where_clause) == 0:
+		return misc.generate_error('Missing Fields. Please send one of these [advertiser,designer,product_name,min_price,max_price,keywords]')
+
+	query = C.query["get_products"].format(
+		" AND ".join(where_clause),
+		" ".join(extra))
+
+	print query
+		
+
 
 	# now merege elements and make querry
 
