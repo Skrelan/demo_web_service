@@ -14,16 +14,15 @@ logging.basicConfig(
 
 C = configs.Configs()
 
-json_dump_path = 'json_data/{0}'
-no_key_response = '<Code>NoSuchKey</Code>'
-got_blocked = '<Error><Code>'
+json_dump_path = C.json_dump_path
+no_key_response = C.no_key_response
+got_blocked = C.got_blocked
 dict_of_vendors = {}
 
 db = web.database(dbn='postgres', 
 				  db='postgres', 
 				  user='postgres', 
 				  pw=C.secrets["postgres"])
-
 
 
 def query_db(query):
@@ -41,26 +40,10 @@ def query_db(query):
 	except Exception as e:
 		if 'FATAL:  sorry, too many clients already\n' in e:
 			time.sleep(3)
-			print "I AM WORKING"
 			return query_db(query)
 
 		logging.error("database connection failed\n{0}\nAborting {1}".format(e,query))
 		return False
-
-
-def batch_query_db(data):
-	print "in"
-	batch_size = C.database_batch_size
-	batch = []
-	for i,val in enumerate(data):
-		batch.append(val)
-		if i%batch_size == 0 and i>0:
-			logging.info("Data batch-{0} :{1}".format(i/batch_size,batch))
-			logging.info("start: {0} -> end {1}".format(i-batch_size,i))
-			batch = []
-	if len(batch) > 0:
-		logging.info("Data batch-{0} :{1}".format((i/batch_size)+1,batch))
-		logging.info(len(batch))
 
 
 @misc.time_taken
@@ -72,39 +55,41 @@ def write_response_to_file(file_name,url):
 		Args: file_name (str), url (str)
 		Returns: Bool
 	"""
+	r = requests.get(url,stream=True)
 	try:
-		r = requests.get(url,stream=True)
-		try:
-			with open(file_name, 'wb') as fd:
-				i = 0
-				for chunk in r.iter_content(chunk_size=128):
-					
-					if i == 0:
-						if no_key_response in chunk:
-							logging.error(misc.generate_error(
-								'Invalid Advertiser'))
-							break
-						if got_blocked in chunk:
-							logging.error(misc.generate_error(
-								'Got blocked/invalid access'))
-							break
-					i +=1
-					fd.write(chunk)
-			if i == 0:
-				os.remove(file_name)
-				return False
+		with open(file_name, 'wb') as fd:
+			i = 0
+			for chunk in r.iter_content(chunk_size=128):	
+				if i == 0:
+					if no_key_response in chunk:
+						logging.error(misc.generate_error(
+							'Invalid Advertiser'))
+						break
+					if got_blocked in chunk:
+						logging.error(misc.generate_error(
+							'Got blocked/invalid access'))
+						break
+				i +=1
+				fd.write(chunk)
+		if i == 0:
+			os.remove(file_name)
+			return False
+		else:
 			return True
 
-		except Exception as e:
-			logging.error("File handling error: {}".format(e)) 
-			return False
-
 	except Exception as e:
-		logging.error('Exception caught: {}'.format(e))
+		logging.error("File handling error: {}".format(e)) 
 		return False
 
 
 def insert_into_products(values):
+	"""
+	About:
+		This function inserts the values passed to it into the database
+
+		Args: values (str)
+		Returns: None
+	"""
 	query = C.query['add_products'].format(values)
 	try:
 		r = query_db(query)
@@ -116,6 +101,15 @@ def insert_into_products(values):
 
 @misc.time_taken
 def write_to_db(file_name,advertiser_id):
+	"""
+	About:
+		This function reads the locally cached file and stores it's
+		contents into the database.
+		Any records that fail are tracked.
+
+		Args: file_name (str), advertiser_id (str)
+		Returns: None or list
+	"""
 	values = ""
 	batch_size = C.database_batch_size
 	failed = []
@@ -143,7 +137,7 @@ def write_to_db(file_name,advertiser_id):
 				values += curr_values
 			
 			except Exception as e:
-				failed.append((i,curr))
+				failed.append([e.message,curr])
 				logging.error('Something went wrong with record {0}'.format(i))
 				logging.error('Reason:{0}'.format(e))
 				print curr
@@ -168,19 +162,31 @@ def write_to_db(file_name,advertiser_id):
 		if len(values) > 0:
 			values = values[:-1]
 			values += ";"
-			# print "run_querry with values ",values
 			insert_into_products(values)
 
-		# records that failled to be converted into string 
-		
-		# print failed
-		print len(failed)
+		return failed if len(failed) else None
 
 
 def insert_vendor(name):
+	"""
+	About:
+		This runs the query to insert a new vendor in to
+		advertiser table
+
+		Args: name (str)
+		Returns: None
+	"""
 	r = query_db(C.query['add_vendor'].format(name))
 
 def get_vendor_id(name):
+	"""
+	About:
+		This runs the query to store id of vendor
+		into a gloabl dictonary - dict_of_vendors
+
+		Args: name (str)
+		Returns: None
+	"""
 	r = query_db(C.query['get_vendor_id'].format(name))
 	if r:
 		for data in r:
@@ -188,11 +194,18 @@ def get_vendor_id(name):
 
 @misc.time_taken
 def get_vendors():
+	"""
+	About:
+		This runs the query to store ids of all vendors
+		in to a gloabl dictonary - dict_of_vendors
+
+		Args: name (str)
+		Returns: None
+	"""
 	r = query_db(C.query['get_vendors'])
 	if r :
 		for data in r:
 			dict_of_vendors[data.advertiser_name] = data.id
-		print dict_of_vendors
 
 
 @misc.time_taken
@@ -218,8 +231,10 @@ def add_vendor(data):
 	if file_created:
 		insert_vendor(data.advertiser)
 		get_vendor_id(data.advertiser)
-		resp = misc.generate_success("File added")
-		write_to_db(file_name,dict_of_vendors[data.advertiser])
+		r = write_to_db(file_name,dict_of_vendors[data.advertiser])
+		resp = misc.generate_success("File added",{"records that failed":r})
+		os.remove(file_name)
+
 	else:
 		resp = misc.generate_error("Invalid Advertiser")
 
@@ -234,6 +249,13 @@ def search_error(keyword,error_message):
 
 @misc.time_taken
 def search_product(data):
+	"""
+	About:
+		This function is used to search for products in products table in the database
+
+		Args: data (web.obj)
+		Returns: JSON
+	"""
 	where_clause = []
 	extra = []
 
@@ -298,6 +320,11 @@ def search_product(data):
 		return json.dumps(resp)
 		
 def load_product():
+	"""
+	About: This is used by the shuffle page
+		Args: None
+		Returns: JSON
+	"""
 	query = C.query["load_products"].format("LIMIT 9 OFFSET 0")
 	r = query_db(query)
 	if not r:

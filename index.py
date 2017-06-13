@@ -25,12 +25,6 @@ urls = ('/','Index',
 app = web.application(urls, globals())
 web.config.debug = True
 
-C = configs.Configs()
-
-"""
-Let's keep all the configs above this, for our ease.
-"""
-
 
 class Index:
 	'''
@@ -43,6 +37,9 @@ class Index:
 	def GET(self,name=''):
 		return self.render.index("Products List")
 
+	def POST(self):
+		return misc.generate_error("Invalid request")
+
 
 class Test:
 	"""
@@ -51,7 +48,6 @@ class Test:
 		if the app is running.
 	"""
 	def GET(self,name=''):
-		#db_funcs.write_to_db("json_data/Nordstrom Rack_products.json",18)
 		return json.dumps({'message':'yes, I work','version':'1.0'})
 
 	def POST(self):
@@ -99,14 +95,12 @@ class Add_vendor:
 		This adds the products of a vendor into the database,
 		if the vendor does not already exsist in the database.
 	"""
+	def GET(self):
+		return misc.generate_error("Invalid request")
+
 	def POST(self):
 		data = web.input(advertiser=None)
-		
-		'''
-		parsed = urlparse.urlparse(web.ctx.query)
-		outgoing = urlparse.parse_qs(parsed.query)
-		'''
-		
+
 		if not data.advertiser:
 			return misc.generate_error("'advertiser' field expected")
 
@@ -140,6 +134,10 @@ class Products:
 	About:
 		This is used by landing page to load data
 	""" 
+	def GET(self):
+		resp = db_funcs.load_product()
+		return resp
+		
 	def POST(self):
 		resp = db_funcs.load_product()
 		return resp

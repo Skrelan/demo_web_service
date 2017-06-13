@@ -73,9 +73,10 @@ $def with (title)
 			 }
 
 			.img-thumbnail{
+				  object-fit: cover;
 			 	  width: 140px;
 				  height: 140px;
-				  background-position: center center;
+				  background-position: 50% 40%;
 				  background-repeat: no-repeat;
 			 }
 		</style>
@@ -93,7 +94,10 @@ $def with (title)
 				<div class="row" style="padding-bottom:10px;">
 				$for j in range(3*i,3+(3*i)):
 	  				<div class="col-xs-6 col-sm-4">
-	  					<img id="img_$j" class="img-thumbnail" src="http://www.thinkgeek.com/images/products/zoom/1a00_st_tos_uniform_hoodie.jpg" height="150" width="150">
+	  					
+	  					<img id="img_$j" class="img-thumbnail" src="http://www.thinkgeek.com/images/products/zoom/1a00_st_tos_uniform_hoodie.jpg">
+	  					
+
 	  					<div class="row"><p id="stats_$j">Think Geek | \$59.99 | \$3.5</p> <button id="button_$j" class="btn btn-success btn-s" href="#">Buy</button></div>
 	  				</div>
 				</div>

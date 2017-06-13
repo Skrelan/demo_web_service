@@ -18,7 +18,7 @@ def generate_error(message):
 	return json.dumps(resp)
 
 
-def generate_success(message):
+def generate_success(message,data=None):
 	"""
 	About:
 		Generates an JSON with key success
@@ -27,6 +27,8 @@ def generate_success(message):
 		Returns: JSON
 	"""
 	resp = {'success':message}
+	if data:
+		resp.update(data)
 	return json.dumps(resp)
 
 

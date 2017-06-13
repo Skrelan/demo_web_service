@@ -21,6 +21,20 @@ Select * from products where product_name = 'Sperry'
 
 Select * from products where product_name Like '%Shoe%' OFFSET 100 LIMIT 100 
 
+Select  P.product_id,
+	P.product_name,
+	P.product_url,
+	A.advertiser_name, 
+	P.designer,
+	P.image_url,
+	P.price,
+	P.commission
+from products as P 
+INNER JOIN advertiser as A 
+ON A.id = P.advertiser_id 
+where P.price < 10 
+AND A.advertiser_name = 'TJ Maxx' 
+OFFSET 100 LIMIT 100 
 
 drop table advertiser;
 
@@ -52,3 +66,19 @@ DELETE FROM advertiser WHERE advertiser_name = 'Beachbody'
 DELETE from products
 DELETE FROM advertiser
 
+DELETE FROM advertiser WHERE id = 26
+DELETE from products WHERE advertiser_id = 26
+SELECT  
+									P.product_id,
+									P.product_name,
+									P.product_url,
+									A.advertiser_name, 
+									P.designer,
+									P.image_url,
+									P.price,
+									P.commission
+								FROM products AS P 
+								INNER JOIN advertiser AS A 
+								ON A.id = P.advertiser_id 
+								where A.advertiser_name LIKE '%Lamborghini%' AND P.designer LIKE '%Suryaa Kumara Relan%' AND P.price <= 100000.0 AND P.price >= 300000.0
+								LIMIT 1000 OFFSET 1

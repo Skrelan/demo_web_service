@@ -1,6 +1,6 @@
 console.log("I am imported");
 document.getElementById("nxt").addEventListener("click",load_content);
-
+//document.addEventListener('DOMContentLoaded',load_content);
 
 function log_response(){
 	$.getJSON("/test", function(response){
@@ -13,7 +13,7 @@ function update_holders(input){
 		var data = document.getElementById('stats_'+String(i));
 		var button = document.getElementById('button_'+String(i));
 		image.setAttribute("src",input[i].image_url);
-		data.innerHTML = "$"+input[i].price+" | $"+input[i].commission;
+		data.innerHTML = input[i].advertiser_name+" | $" +input[i].price+" | $"+input[i].commission;
 	}
 }
 
