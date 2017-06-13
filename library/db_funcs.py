@@ -224,3 +224,56 @@ def add_vendor(data):
 		resp = misc.generate_error("Invalid Advertiser")
 
 	return resp
+
+def search_error(keyword,error_message):
+	logging.error('{0} not a float'.format(keyword))
+	logging.error(error_message)
+	resp = misc.generate_error('{0} is not a number'.format(keyword))
+	return resp
+
+
+@misc.time_taken
+def search_product(data):
+	where_clause = []
+	extra = []
+
+	if data.advertiser:
+		where_clause.append("A.advertiser_name LIKE '%{0}%'".format(data.advertiser))
+	if data.designer:
+		where_clause.append("P.designer LIKE '%{0}%'".format(data.designer))
+	if data.keywords:
+		where_clause.append("P.product_name LIKE '%{0}%'".format(data.keywords))
+	
+	if data.min_price:
+		try:
+			m = abs(float(data.min_price))
+			where_clause.append("P.price =< {0}".format(m))
+		except Exception as e:
+			search_error('min_price',e)
+
+	if data.max_price:
+		try:
+			m = abs(float(data.max_price))
+			where_clause.append("P.price >= {0}".format(m))
+		except Exception as e:
+			search_error('max_price',e)
+
+	if data.limit:
+		try:
+			m = abs(int(data.limit))
+			m = m if m < 1000 else 1000
+			extra.append("LIMIT {0}".format(m))
+		except Exception as e:
+			search_error('limit',e)
+
+	if data.offset:
+		try:
+			m = abs(int(data.offset))
+			m = m if m < 1000 else 1000
+			extra.append("OFFSET {0}".format(m))
+		except Exception as e:
+			search_error('offset',e)
+
+	# now merege elements and make querry
+
+

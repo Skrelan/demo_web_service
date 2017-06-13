@@ -121,6 +121,23 @@ class Add_vendor:
 			resp = db_funcs.add_vendor(data)
 			return resp
 
+class Search:
+	"""
+	About:
+		This enables users and scripts to Search the Database,
+		based on search queries
+	"""
+	def GET(self):
+		data = web.input(advertiser=None,
+						 designer=None,
+						 keywords=None,
+						 min_price=None,
+						 max_price=None,
+						 limit=None,
+						 offset=None)
+		resp = db_funcs.search_product(data)
+		return resp
+
 
 if __name__ == '__main__':
 		app.run()
