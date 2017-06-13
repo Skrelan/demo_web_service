@@ -1,4 +1,4 @@
-$def with (title, lists)
+$def with (title)
 
 <!DOCTYPE HTML>
 <html>
@@ -15,10 +15,8 @@ $def with (title, lists)
 			#main-view,#main-view2{
 				background: -webkit-linear-gradient(top, #FFFFFF 0.0%, #FFDDAA 100.0%) no-repeat;
 				border: 3px solid#333;
-				height: 100px;
-			}
-			#main-view2{
-				height: 500px;
+				height: 750px;
+				padding: 50px;
 			}
 			h1{
 				font-family: cursive;
@@ -83,11 +81,20 @@ $def with (title, lists)
 				</h2>
 			</div>
 
-			<div id="main-view">
-			$for t in lists:
-				<h3>$t.last_name | $t.first_name</h3>
-			<button id="click_me" >Click</button>
+			<div id="main-view" align = "center">
+			$for i in range(0,3):
+				<div class="row" style="padding-bottom:10px;">
+				$for j in range(3*i,3+(3*i)):
+	  				<div class="col-xs-6 col-sm-4">
+	  					<img id="img_$j" class="img-thumbnail" src="http://www.thinkgeek.com/images/products/zoom/1a00_st_tos_uniform_hoodie.jpg" height="150" width="150">
+	  					<div class="row"><p id="stats_$j">Think Geek | \$59.99 | \$3.5</p> <button id="button_$j" class="btn btn-success btn-s" href="#">Buy</button></div>
+	  				</div>
+				</div>
+
+			<div class="row" style="padding-top:1px">
+					<button id ="nxt" class = "btn btn-primary btn-block">Randomize>></button>
 			</div>
+
 		</div>
 		<script type="text/javascript" src="static/js/func.js"></script>
 	</body>

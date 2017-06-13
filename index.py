@@ -41,14 +41,7 @@ class Index:
 		self.render = web.template.render('templates/')
 
 	def GET(self,name=''):
-		query = "Select * from users"
-		results = db_funcs.query_db(query)
-
-		if results:
-			return self.render.index("hello is cool",results)
-		else:
-			logging.error('Invalid Query {0}'.format(query))
-			return self.render.index("Something broke",[])
+		return self.render.index("Products List")
 
 
 class Test:
@@ -106,7 +99,7 @@ class Add_vendor:
 		This adds the products of a vendor into the database,
 		if the vendor does not already exsist in the database.
 	"""
-	def GET(self):
+	def POST(self):
 		data = web.input(advertiser=None)
 		
 		'''
@@ -125,7 +118,7 @@ class Search:
 	"""
 	About:
 		This enables users and scripts to Search the Database,
-		based on search queries
+		using URL pased search queries
 	"""
 	def GET(self):
 		data = web.input(advertiser=None,
@@ -135,7 +128,20 @@ class Search:
 						 max_price=None,
 						 limit=None,
 						 offset=None)
+
 		resp = db_funcs.search_product(data)
+		return resp
+
+	def POST(self):
+		return misc.generate_error('Invalid request. Nice try ;)')
+
+class Products:
+	"""
+	About:
+		This is used by landing page to load data
+	""" 
+	def POST(self):
+		resp = db_funcs.load_product()
 		return resp
 
 

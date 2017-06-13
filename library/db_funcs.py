@@ -283,10 +283,34 @@ def search_product(data):
 		" AND ".join(where_clause),
 		" ".join(extra))
 
-	print query
+	r = query_db(query)
+
+	if not r:
+		return json.dumps({'message':'No results found for the query'})
+	else:
+		data = []
+		for record in r:
+			temp = dict(record)
+			temp['commission'] = float(record.commission)
+			temp['price'] = float(record.price)
+			data.append(temp)
+		resp = {"result":data}
+		return json.dumps(resp)
 		
-
-
+def load_product():
+	query = C.query["load_products"].format("LIMIT 9 OFFSET 0")
+	r = query_db(query)
+	if not r:
+		return json.dumps({'message':'No results found for the query'})
+	else:
+		data = []
+		for record in r:
+			temp = dict(record)
+			temp['commission'] = float(record.commission)
+			temp['price'] = float(record.price)
+			data.append(temp)
+		resp = {"result":data}
+		return json.dumps(resp)
 	# now merege elements and make querry
 
 
