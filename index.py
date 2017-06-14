@@ -1,8 +1,6 @@
 import web
 import logging
 import json
-import config.configs as configs
-import os
 import requests
 import urlparse
 import library.db_funcs as db_funcs
@@ -115,7 +113,18 @@ class Search:
 		using URL pased search queries
 	"""
 	def GET(self):
-		data = web.input(advertiser=None,
+		try:
+			data = json.loads(web.data())
+			data = misc.convert_to_namedtuple(
+						{'advertiser':None,
+						 'designer':None,
+						 'keywords':None,
+						 'min_price':None,
+						 'max_price':None,
+						 'limit':None,
+						 'offset':None},data)
+		except:
+			data = web.input(advertiser=None,
 						 designer=None,
 						 keywords=None,
 						 min_price=None,
@@ -137,7 +146,7 @@ class Products:
 	def GET(self):
 		resp = db_funcs.load_product()
 		return resp
-		
+
 	def POST(self):
 		resp = db_funcs.load_product()
 		return resp

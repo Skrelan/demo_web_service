@@ -1,6 +1,8 @@
 import json 
 import logging
 import time
+import requests
+from collections import namedtuple
 
 logging.basicConfig( 
 	level=logging.DEBUG,
@@ -30,6 +32,18 @@ def generate_success(message,data=None):
 	if data:
 		resp.update(data)
 	return json.dumps(resp)
+
+
+def convert_to_namedtuple(dictionary,values):
+	"""
+	About:
+		Converts dictionary into namedtuple
+
+		Args: dictionary (dict)
+		Returns: namedtuple
+	"""
+	dictionary.update(values)
+	return namedtuple('GenericDict', dictionary.keys())(**dictionary)
 
 
 def time_taken(func):
