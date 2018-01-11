@@ -67,3 +67,5 @@ The Goal of this application is to :
 1. Please note the configs file are not included in this repo and it contains the tokens, db_configs, rewardStyle APIs etc.
 
 2. To run this you will require the web.py Framework. [Read more here](https://medium.com/@Skrelan/setting-up-your-first-web-application-c92aa28d0f03)
+
+3. To run the app locally simply run `python index.py` after making your configs are correct and Postgres is running
