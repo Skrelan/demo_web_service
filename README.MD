@@ -45,7 +45,7 @@ The Goal of this application is to :
   * description : Returns back 9 random products
   * endpoint :`/products`
   * request type : `GET`
-  * parameters :  something
+  * parameters :  None
 
 
 * Health check:
