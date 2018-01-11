@@ -7,9 +7,9 @@ The Goal of this application is to :
   3. **BONUS FEATURE**: A Tinder like full-stack app to allow Influencers to browse through items in local DB
 
 ## Contents
-1. [Software Stack](software-stack)
-2. [Endpoints](endpoints)
-3. [Notes](notes)
+1. [Software Stack](#software-stack)
+2. [Endpoints](#endpoints)
+3. [Notes](#notes)
 ----
 ## Software Stack
 1. **Back-end** :  Python, web.py Framework
