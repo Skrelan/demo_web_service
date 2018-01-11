@@ -21,7 +21,7 @@ The Goal of this application is to :
   * description : adds a new vendor
   * endpoint : `/addVendor`
   * request type : `POST`
-  * parameters :
+  * parameters : `?advertiser={int}`
 
 
 * Item Search :
@@ -29,27 +29,38 @@ The Goal of this application is to :
   * endpoint :`/search`
   * request type : `GET`
   * parameters :
+  ```
+    {'advertiser':None,
+       'designer':None,
+       'keywords':None,
+       'min_price':None,
+       'max_price':None,
+       'limit':None,
+       'offset':None}
+  ```
+  **NOTE**: Data can be sent to this endpoint in either Search Query format or JSON data
 
 
 * Products:
-  * description :
-  * endpoint :`/products`
-  * request type : `POST`
-  * parameters : something
-
-  <br>
-  * description :
+  * description : Returns back 9 random products
   * endpoint :`/products`
   * request type : `GET`
   * parameters :  something
 
+
+* Health check:
+  * description : Health check, to see if web-app is running
+  * endpoint : `/test`
+  * request type : `GET`
+  * parameters :  None
 
 
 * Landing Page :
   * description : Renders landing page
   * endpoint : `/`
   * request type : `GET`
-  * parameters :
+  * parameters :  None
+
 
 -----
 ## Notes
